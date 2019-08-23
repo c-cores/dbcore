@@ -7,7 +7,7 @@
 #include <std/implier.h>
 #include <std/slice.h>
 
-namespace db
+namespace core
 {
 
 template <class value_type>

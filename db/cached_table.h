@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+namespace core
+{
+
 template <typename value_type, int limit>
 struct cached_table
 {
@@ -97,3 +100,4 @@ struct cached_table
 	}
 };
 
+}

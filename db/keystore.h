@@ -6,15 +6,15 @@
 
 #include <db/table.h>
 
-namespace file
+namespace core
 {
 
 template <class ktype, class vtype>
-struct map : table<implier<ktype, vtype> >
+struct keystore : table<implier<ktype, vtype> >
 {
-	map() {}
-	map(const char *filename, bool overwrite = false) : table<implier<ktype, vtype> >(filename, overwrite) {}
-	~map() {}
+	keystore() {}
+	keystore(const char *filename, bool overwrite = false) : table<implier<ktype, vtype> >(filename, overwrite) {}
+	~keystore() {}
 
 
 	using table<implier<ktype, vtype> >::count;

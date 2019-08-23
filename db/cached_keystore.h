@@ -1,23 +1,26 @@
 #pragma once
 
-#include "map.h"
+#include "keystore.h"
 #include "table.h"
 
 #include <stdlib.h>
 #include <stdio.h>
 
-template <typename key_type, typename value_type, int limit, value_type (*U)(value_type, value_type)>
-struct cached_map
+namespace core
 {
-	cached_map() {}
-	cached_map(const char *filename, bool overwrite = true) : store(filename, overwrite) { this->filename = filename; }
-	~cached_map()
+
+template <typename key_type, typename value_type, int limit, value_type (*U)(value_type, value_type)>
+struct cached_keystore
+{
+	cached_keystore() {}
+	cached_keystore(const char *filename, bool overwrite = true) : store(filename, overwrite) { this->filename = filename; }
+	~cached_keystore()
 	{
 		save();
 	}
 
-	typedef core::map<key_type, value_type> cache_type;
-	typedef file::map<key_type, value_type> store_type;
+	typedef map<key_type, value_type> cache_type;
+	typedef keystore<key_type, value_type> store_type;
 	const char *filename;
 
 	store_type store;
@@ -48,3 +51,4 @@ struct cached_map
 	}
 };
 
+}
