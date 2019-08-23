@@ -14,7 +14,7 @@ Probably too early to care at the moment, but that's up to you.
 
 # Linking
 
-Lets start with a basic program which will include the table header. Every header in this library is found in the `db` directory. Every structure and function are contained within the `core` namespace.
+Lets start with a basic program which will include the table header. Every header in this library is found in the `db` directory. Every structure and function are contained within the `core` namespace. This core requires use of the standard core as well.
 
 ```c++
 #include <db/table.h>
@@ -30,6 +30,6 @@ int main()
 This can be compiled with the following command.
 
 ```
-g++ example.cpp -Ipath/to/include -Lpath/to/lib -ldbcore -o example
+g++ example.cpp -Ipath/to/include -Lpath/to/lib -ldbcore -lstdcore -o example
 ```
 

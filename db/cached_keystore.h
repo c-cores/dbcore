@@ -3,6 +3,8 @@
 #include "keystore.h"
 #include "table.h"
 
+#include <std/map.h>
+
 #include <stdlib.h>
 #include <stdio.h>
 

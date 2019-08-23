@@ -1,7 +1,7 @@
 #pragma once
 
 #include "table.h"
-#include "array.h"
+#include <std/array.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -30,10 +30,11 @@ struct cached_table
 	~cached_table()
 	{
 		finish();
+		store.close();
 	}
 
 	typedef implier<uint64_t, value_type> cache_type;
-	typedef file::table<value_type> store_type;
+	typedef table<value_type> store_type;
 	const char *filename;
 
 	store_type store;
@@ -52,7 +53,6 @@ struct cached_table
 					cache[i].key = (uint64_t)-1;
 					count--;
 				}
-			store.close();
 		}
 		fprintf(fptr, "Done %d[%d]\n", count, store.size());
 	}
