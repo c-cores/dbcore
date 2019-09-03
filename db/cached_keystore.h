@@ -3,6 +3,7 @@
 #include "keystore.h"
 #include "table.h"
 
+#include <std/hash_map.h>
 #include <std/map.h>
 
 #include <stdlib.h>
@@ -21,7 +22,7 @@ struct cached_keystore
 		save();
 	}
 
-	typedef map<key_type, value_type> cache_type;
+	typedef hash_map<key_type, value_type> cache_type;
 	typedef keystore<key_type, value_type> store_type;
 	const char *filename;
 

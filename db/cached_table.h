@@ -43,7 +43,7 @@ struct cached_table
 
 	void finish(FILE *fptr = stdout)
 	{
-		fprintf(fptr, "Saving %d values to %s[%d]...\t\t", count, filename, store.size());
+		//fprintf(fptr, "Saving %d values to %s[%d]...\t\t", count, filename, store.size());
 		if (store.fptr != NULL)
 		{
 			for (int i = 0; i < limit; i++)
@@ -54,7 +54,7 @@ struct cached_table
 					count--;
 				}
 		}
-		fprintf(fptr, "Done %d[%d]\n", count, store.size());
+		//fprintf(fptr, "Done %d[%d]\n", count, store.size());
 	}
 
 	value_type *get(uint64_t index, FILE *log = stdout)
@@ -62,10 +62,10 @@ struct cached_table
 		cache_type *loc = cache + (index%limit);
 		if (loc->key != index) {
 			if (loc->key != (uint64_t)-1) {
-				fprintf(log, "Saving 1 value to %s[%d]...\t\t", filename, store.size());
+				//fprintf(log, "Saving 1 value to %s[%d]...\t\t", filename, store.size());
 				store.write(loc->key, loc->value);
 				count--;
-				fprintf(log, "Done [%d]\n", store.size());
+				//fprintf(log, "Done [%d]\n", store.size());
 			}
 			loc->key = index;
 			loc->value = store.read(loc->key);
