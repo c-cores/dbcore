@@ -29,20 +29,35 @@ struct cached_keystore
 	store_type store;
 	cache_type cache;
 
-	value_type *get(const key_type &key, FILE *log = stdout)
+	typename cache_type::iterator get(const key_type &key, FILE *log = stdout)
 	{
 		if (cache.size() >= limit)
 			save(log);
-		typename cache_type::iterator loc = cache.at(key);
-		return &loc->value;
-	}	
+
+		uint32_t hash = 0;
+		implier<key_type, value_type> search(key, value_type());
+		typename cache_type::item_iterator cloc = cache.position(search, &hash);
+		if (!cloc or cloc->second.key != key) {
+			typename store_type::iterator sloc = store.at(key);
+			return cache.insert_at(cloc, sloc.get().second, &hash);
+		} else {
+			return typename cache_type::iterator(&cache, cloc);
+		}
+	}
 
 	void update(const key_type &key, const value_type &value, FILE *log = stdout)
 	{
-		cache.update(key, value, U);
-		
 		if (cache.size() >= limit)
 			save(log);
+
+		uint32_t hash = 0;
+		implier<key_type, value_type> search(key, value);
+		typename cache_type::item_iterator cloc = cache.position(search, &hash);
+		if (!cloc or cloc->second.key != key) {
+			cache.insert_at(cloc, search, &hash);
+		} else {
+			cloc->second.value = U(cloc->second.value, value);
+		}
 	}
 
 	void save(FILE *log = stdout)
