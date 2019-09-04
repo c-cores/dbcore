@@ -92,6 +92,7 @@ struct table
 			sync();
 			return cached;
 		}
+
 		const value_type *operator->()
 		{
 			sync();
@@ -265,6 +266,13 @@ struct table
 			root->insert(index, v);
 			index++;
 			cached_index++;
+		}
+
+		void swap(iterator i)
+		{
+			value_type tmp = cached;
+			set(i.cached);
+			i.set(tmp);
 		}
 
 		iterator &operator=(iterator i)

@@ -5,53 +5,43 @@
 #include <stdint.h>
 
 #include <db/table.h>
-#include <std/bits.h>
-#include <std/hash_set.h>
 
 namespace core
 {
 
-template <class ktype, class vtype, uint32_t (*hash_func)(const char *,int,uint32_t) = murmur3_32>
-struct keystore : table<pair<uint32_t, implier<ktype, vtype> > >
+template <class ktype, class vtype>
+struct keystore : table<implier<ktype, vtype> >
 {
 	keystore() {}
-	keystore(const char *filename, bool overwrite = false) : table<pair<uint32_t, implier<ktype, vtype> > >(filename, overwrite) {}
+	keystore(const char *filename, bool overwrite = false) : table<implier<ktype, vtype> >(filename, overwrite) {}
 	~keystore() {}
 
-	using table<pair<uint32_t, implier<ktype, vtype> > >::count;
-	using table<pair<uint32_t, implier<ktype, vtype> > >::read;
-	using table<pair<uint32_t, implier<ktype, vtype> > >::write;
-	
-	using typename table<pair<uint32_t, implier<ktype, vtype> > >::type;
-	using typename table<pair<uint32_t, implier<ktype, vtype> > >::iterator;
-	using typename table<pair<uint32_t, implier<ktype, vtype> > >::const_iterator;
-	using table<pair<uint32_t, implier<ktype, vtype> > >::size;
-	using table<pair<uint32_t, implier<ktype, vtype> > >::begin;
-	using table<pair<uint32_t, implier<ktype, vtype> > >::end;
-	using table<pair<uint32_t, implier<ktype, vtype> > >::rbegin;
-	using table<pair<uint32_t, implier<ktype, vtype> > >::rend;
-	using table<pair<uint32_t, implier<ktype, vtype> > >::sub;
 
-	uint32_t hash_it(ktype key) const
-	{
-		bits h;
-		hash_data(h, key);
-		return hash_func((const char*)h.data, h.size(), 0);
-	}
+	using table<implier<ktype, vtype> >::count;
+	using table<implier<ktype, vtype> >::read;
+	using table<implier<ktype, vtype> >::write;
+	
+	using typename table<implier<ktype, vtype> >::type;
+	using typename table<implier<ktype, vtype> >::iterator;
+	using typename table<implier<ktype, vtype> >::const_iterator;
+	using table<implier<ktype, vtype> >::size;
+	using table<implier<ktype, vtype> >::begin;
+	using table<implier<ktype, vtype> >::end;
+	using table<implier<ktype, vtype> >::rbegin;
+	using table<implier<ktype, vtype> >::rend;
+	using table<implier<ktype, vtype> >::sub;
 
 	iterator insert(ktype key, vtype value)
 	{
-		uint32_t hash = hash_it(key);
-		iterator pos = lower_bound(begin(), end(), pair<uint32_t, ktype>(hash, key), 2, size());
-		pos.push(pair<uint32_t, implier<ktype, vtype> >(hash, implier<ktype, vtype>(key, value)));
+		iterator pos = lower_bound(begin(), end(), key, 2, size());
+		pos.push(implier<ktype, vtype>(key, value));
 		return (pos-1);
 	}
 
 	iterator find(ktype key)
 	{
-		uint32_t hash = hash_it(key);
-		iterator pos = lower_bound(begin(), end(), pair<uint32_t, ktype>(hash, key), 2, size());
-		if (pos != end() && pos.get().second.key == key)
+		iterator pos = lower_bound(begin(), end(), key, 2, size());
+		if (pos != end() && pos.get().key == key)
 			return pos;
 		else
 			return end();
@@ -59,10 +49,9 @@ struct keystore : table<pair<uint32_t, implier<ktype, vtype> > >
 
 	iterator at(ktype key)
 	{
-		uint32_t hash = hash_it(key);
-		iterator pos = lower_bound(begin(), end(), pair<uint32_t, ktype>(hash, key), 2, size());
-		if (pos == end() || pos.get().second.key != key) {
-			pos.push(pair<uint32_t, implier<ktype, vtype> >(hash, implier<ktype, vtype>(key, vtype())));
+		iterator pos = lower_bound(begin(), end(), key, 2, size());
+		if (pos == end() || pos.get().key != key) {
+			pos.push(implier<ktype, vtype>(key, vtype()));
 			return pos-1;
 		} else
 			return pos;
@@ -70,12 +59,11 @@ struct keystore : table<pair<uint32_t, implier<ktype, vtype> > >
 
 	void update(ktype key, vtype value, vtype (*U)(vtype, vtype))
 	{
-		uint32_t hash = hash_it(key);
-		iterator pos = lower_bound(begin(), end(), pair<uint32_t, ktype>(hash, key), 2, size());
-		if (!pos || pos.get().second.key != key) {
-			pos.push(pair<uint32_t, implier<ktype, vtype> >(hash, implier<ktype, vtype>(key, value)));
+		iterator pos = lower_bound(begin(), end(), key, 2, size());
+		if (!pos || pos.get().key != key) {
+			pos.push(implier<ktype, vtype>(key, value));
 		} else {
-			pos.set(pair<uint32_t, implier<ktype, vtype> >(hash, implier<ktype, vtype>(pos.get().second.key, U(pos.get().second.value, value))));
+			pos.set(implier<ktype, vtype>(pos.get().key, U(pos.get().value, value)));
 		}
 	}
 
@@ -87,7 +75,7 @@ struct keystore : table<pair<uint32_t, implier<ktype, vtype> > >
 
 		typename container::iterator ci;
 		uint64_t i, j;
-		pair<uint32_t, implier<ktype, vtype> > x;
+		implier<ktype, vtype> x;
 
 		i = count-1;
 		ci = c.rbegin();
@@ -96,13 +84,13 @@ struct keystore : table<pair<uint32_t, implier<ktype, vtype> > >
 			x = read(i--);
 			while (ci != c.rend())
 			{
-				if (*(ci.ref) < x) {
+				if (*ci < x) {
 					if (i < count)
 						x = read(i--);
 					else
 						break;
-				} else if (*(ci.ref) == x) {
-					write(i+1, pair<uint32_t, implier<ktype, vtype> >(x.first, implier<ktype, vtype>(x.second.key, U(x.second.value, ci->value))));
+				} else if (*ci == x) {
+					write(i+1, implier<ktype, vtype>(x.key, U(x.value, ci->value)));
 					ci.drop();
 					ci--;
 					if (i >= 0)
@@ -126,14 +114,14 @@ struct keystore : table<pair<uint32_t, implier<ktype, vtype> > >
 			x = read(i--);
 			while (ci != c.rend())
 			{
-				if (*(ci.ref) < x) {
+				if (*ci < x) {
 					write(j--, x);
 					if (i < count - c.size())
 						x = read(i--);
 					else
 						break;
 				} else {
-					write(j--, *(ci.ref));
+					write(j--, *ci);
 					ci--;
 				}
 			}
@@ -141,7 +129,7 @@ struct keystore : table<pair<uint32_t, implier<ktype, vtype> > >
 
 		while (ci != c.rend() && j < count)
 		{
-			write(j--, *(ci.ref));
+			write(j--, *ci);
 			ci--;
 		}
 
