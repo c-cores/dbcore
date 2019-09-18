@@ -29,6 +29,26 @@ struct cached_hashstore
 	store_type store;
 	cache_type cache;
 
+	typename cache_type::iterator find(const key_type &key, FILE *log = stdout)
+	{
+		if (cache.size() >= limit)
+			save(log);
+
+		uint32_t hash = 0;
+		implier<key_type, value_type> search(key, value_type());
+		typename cache_type::item_iterator cloc = cache.position(search, &hash);
+		if (cloc and cloc->second.key == key) {
+			return typename cache_type::iterator(&cache, cloc);
+		} else {
+			typename store_type::iterator sloc = store.find(key);
+			if (sloc) {
+				return cache.insert_at(cloc, sloc.get().second, &hash);
+			} else {
+				return cache.end();
+			}
+		}
+	}
+
 	typename cache_type::iterator get(const key_type &key, FILE *log = stdout)
 	{
 		if (cache.size() >= limit)
