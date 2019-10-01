@@ -642,16 +642,20 @@ struct table
 
 	void write(uint64_t index, const value_type &value)
 	{
+		static value_type buf[1024] = {};
+		if (index >= count) {
+			fseek(fptr, count*sizeof(value_type), SEEK_SET);
+			while (index >= count+1024) {
+				fwrite(buf, sizeof(value_type), 1024, fptr);
+				count += 1024;
+			}
+			if (index >= count) {
+				fwrite(buf, sizeof(value_type), index-count+1, fptr);
+				count = index+1;
+			}
+		}
 		fseek(fptr, index*sizeof(value_type), SEEK_SET);
 		fwrite(&value, sizeof(value_type), 1, fptr);
-		if (index >= count)
-		{
-			value_type init;
-			fseek(fptr, count*sizeof(value_type), SEEK_SET);
-			for (; count < index; count++)
-				fwrite(&init, sizeof(value_type), 1, fptr);
-			count++;
-		}
 	}
 
 	uint64_t find(const value_type &value, value_type *found = NULL)

@@ -28,6 +28,7 @@ struct cached_hashstore
 
 	store_type store;
 	cache_type cache;
+	hash_set<key_type> saved;
 
 	typename cache_type::iterator find(const key_type &key, FILE *log = stdout)
 	{
@@ -39,13 +40,15 @@ struct cached_hashstore
 		typename cache_type::item_iterator cloc = cache.position(search, &hash);
 		if (cloc and cloc->second.key == key) {
 			return typename cache_type::iterator(&cache, cloc);
-		} else {
+		} else if (saved.contains(key)) {
 			typename store_type::iterator sloc = store.find(key);
 			if (sloc) {
 				return cache.insert_at(cloc, sloc.get().second, &hash);
 			} else {
 				return cache.end();
 			}
+		} else {
+			return cache.end();
 		}
 	}
 
@@ -58,8 +61,12 @@ struct cached_hashstore
 		implier<key_type, value_type> search(key, value_type());
 		typename cache_type::item_iterator cloc = cache.position(search, &hash);
 		if (!cloc or cloc->second.key != key) {
-			typename store_type::iterator sloc = store.at(key);
-			return cache.insert_at(cloc, sloc.get().second, &hash);
+			if (saved.contains(key)) {
+				typename store_type::iterator sloc = store.at(key);
+				return cache.insert_at(cloc, sloc.get().second, &hash);
+			} else {
+				return cache.insert_at(cloc, search, &hash);
+			}
 		} else {
 			return typename cache_type::iterator(&cache, cloc);
 		}
@@ -84,6 +91,9 @@ struct cached_hashstore
 	{
 		fprintf(log, "Saving %d items into %s[%d]...\t\t", cache.size(), filename, store.size());
 		fflush(log);
+		for (typename cache_type::item_iterator i = cache.items.begin(); i; i++) {
+			saved.insert(i->second.key);
+		}
 		store.append(cache, U);
 		fprintf(log, "Done %d[%d]\n", cache.size(), store.size());
 	}
